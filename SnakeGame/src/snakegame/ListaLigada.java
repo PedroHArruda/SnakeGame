@@ -1,13 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package snakegame;
 
-/**
- *
- * @author Pedro
- */
 public class ListaLigada {
 
     private Node firstNode;
@@ -43,7 +36,8 @@ public class ListaLigada {
         }
         
         else{
-            this.lastNode.getPreviousNode().setNextNode(null);
+            setLastNode(this.lastNode.getPreviousNode()); 
+            this.lastNode.setNextNode(null); 
             this.size--; 
         }
     }

@@ -9,26 +9,23 @@ import java.util.Random;
 
 public class Tabuleiro extends JFrame {
 
-    private JPanel painel;
-    private JPanel menu;
-    private JButton iniciarButton;
-    private JButton resetButton;
-    private JButton pauseButton;
-    private JTextField placarField;
-    private int x, y;
-    private String direcao = "parado";
-    private long tempoAtualizacao = 100;
-    private int incremento = 20;
-    private Quadrado maca, macaEnvenenada;
-    private Snake cobra;
+    private JPanel painel; // Painel
+    private JPanel menu; // Menu do jogo
+    private JButton resetButton; // Botão de reset 
+    private JButton pauseButton; // Botão de pause
+    private JTextField placarField; // Placar de Pontos
+    private int x, y; // Coordenadas X e Y
+    private String direcao = "parado"; // Direção atual da cobra
+    private long tempoAtualizacao = 100; // Tempo de Atualização dos Frames
+    private int incremento = 20; // Incremento
+    private Quadrado maca, macaEnvenenada; // Quadrado referente a maçã e maçã envenenada
+    private Snake cobra; // Instância da classe Snake
     private boolean jogoAtivo; // Variável de controle para o estado do jogo
-
-    private int larguraTabuleiro, alturaTabuleiro;
-    private int placar = 0;
-    private Random random = new Random();
-
+    private int larguraTabuleiro, alturaTabuleiro; // Altura e Largura do Tabuleiro
+    private int placar = 0; // Variável referente ao placar do jogo
+    private Random random = new Random(); // Intância randômica 
+    private int modoDeJogo; // Variável de controle para o modo de Jogo
     TelaInicial telaInicial = new TelaInicial(); //Instancia um objeto da classe TelaInicial
-    private int modoDeJogo; 
 
     public int getModoDeJogo() {
         return modoDeJogo;
@@ -37,11 +34,7 @@ public class Tabuleiro extends JFrame {
     public void setModoDeJogo(int modoDeJogo) {
         this.modoDeJogo = modoDeJogo;
     }
-    
-    
-    
-    
-    
+
     public Tabuleiro() {
 
         cobra = new Snake();
@@ -77,16 +70,16 @@ public class Tabuleiro extends JFrame {
         Color buttonBackground = new Color(48, 242, 242);
 
         menu.setBackground(menuBackground);
-        pauseButton.setBackground(buttonBackground); 
-        
-        Font f = new Font("Poppins", 10, 18);  
+        pauseButton.setBackground(buttonBackground);
+
+        Font f = new Font("Poppins", 10, 18);
         placarField.setFont(f);
-        resetButton.setFont(f); 
-        pauseButton.setFont(f); 
-        resetButton.setBackground(buttonBackground); 
+        resetButton.setFont(f);
+        pauseButton.setFont(f);
+        resetButton.setBackground(buttonBackground);
         placarField.setBackground(menuBackground);
         placarField.setBorder(null);
-       
+
         painel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -186,22 +179,26 @@ public class Tabuleiro extends JFrame {
 
     }
 
-    
-   public void verificarColisoes(){
-       switch(this.modoDeJogo){
-           case 0: 
-               colisaoBorda();
+    public void verificarColisoes() {
+        switch (this.modoDeJogo) {
+            case 0:
+                colisaoBorda();
+                break;
+            case 1:
+                colisaoBordaOposta();
+                break;
+        }
+        if (cobra.detectarColisaoComCorpo()) {
+            encerrarJogo("Colisão com o próprio corpo!");
+            jogoAtivo = false;
 
-               break; 
-           case 1: 
-               colisaoBordaOposta(); 
-               break; 
-       }
-       colisaoCorpoCobra(); 
-   }
+        }
+        colisaoMaca();
+        colisaoMacaEnvenenada();
+
+    }
 
     public void colisaoBorda() {
-
         //Método responsável para verificar as colisões com as bordas da janela e com o corpo da cobra
         if (!jogoAtivo) {
             return;
@@ -209,8 +206,6 @@ public class Tabuleiro extends JFrame {
 
         // Obtém a cabeça da cobra
         Node cabeca = cobra.getCorpo().getLastNode();
-        // Obtém o primeiro nó da cobra 
-        Node atual = cobra.getCorpo().getFirstNode();
 
         Quadrado quadradoCabeca = cabeca.getQuadrado();
 
@@ -220,7 +215,6 @@ public class Tabuleiro extends JFrame {
 
             encerrarJogo("Colisão com a borda! Jogo encerrado.");
             jogoAtivo = false;
-            return;
 
         }
 
@@ -228,32 +222,35 @@ public class Tabuleiro extends JFrame {
 
     public void colisaoBordaOposta() {
         //Método para quando a cobra colidir com a borda ela aparece do outro lado 
-        // - Não consegui terminar
-    }
-
-    public void colisaoCorpoCobra() {
-        //Método responsável para verificar as colisões com as bordas da janela e com o corpo da cobra
-        if (!jogoAtivo) {
-            return;
-        }
-
-        // Obtém a cabeça da cobra
         Node cabeca = cobra.getCorpo().getLastNode();
-        // Obtém o primeiro nó da cobra 
-        Node atual = cobra.getCorpo().getFirstNode();
-        //Verifica a colisão com a própria cobra 
-        while (atual != null && atual != cabeca && atual.getNextNode() == null) {
-            cabeca = cobra.getCorpo().getLastNode();
-            atual = cobra.getCorpo().getFirstNode();
-            if (cabeca.getQuadrado().x == atual.getQuadrado().x
-                    && cabeca.getQuadrado().y == atual.getQuadrado().y) {
-                encerrarJogo("Colisão com o próprio corpo! Jogo encerrado.");
-                jogoAtivo = false;
-                return;
-            }
+        Quadrado quadradoCabeca = cabeca.getQuadrado();
+        Quadrado novoQuadrado = cabeca.getQuadrado();
 
-            atual = atual.getNextNode();
+        if (quadradoCabeca.x < 0) {
+            novoQuadrado.x = larguraTabuleiro - 20;
+            novoQuadrado.y = quadradoCabeca.y;
+            cabeca.setQuadrado(novoQuadrado);
+            cobra.mover("esquerda");
         }
+        if (quadradoCabeca.x > larguraTabuleiro) {
+            novoQuadrado.x = 20;
+            novoQuadrado.y = quadradoCabeca.y;
+            cabeca.setQuadrado(novoQuadrado);
+            cobra.mover("direita");
+        }
+        if (quadradoCabeca.y > alturaTabuleiro) {
+            novoQuadrado.x = quadradoCabeca.x;
+            novoQuadrado.y = 20;
+            cabeca.setQuadrado(novoQuadrado);
+            cobra.mover("baixo");
+        }
+        if (quadradoCabeca.y < 0) {
+            novoQuadrado.x = 20;
+            novoQuadrado.y = alturaTabuleiro - 20;
+            cabeca.setQuadrado(novoQuadrado);
+            cobra.mover("cima");
+        }
+
     }
 
     //Método para gerar a maçã aleatoriamente
@@ -272,10 +269,11 @@ public class Tabuleiro extends JFrame {
 
     // Método de encerrar o jogo e exibir uma mensagem de Game Over
     private void encerrarJogo(String mensagem) {
+
         jogoAtivo = false; // Interrompe o loop principal do jogo
         JOptionPane.showMessageDialog(this, mensagem, "Game Over", JOptionPane.OK_OPTION);
-        placar = 0;
-        resetarCobra(); // Reseta a posição e tamanho da cobra
+        this.setVisible(false);
+        telaInicial.setVisible(true);
 
     }
 
@@ -309,16 +307,46 @@ public class Tabuleiro extends JFrame {
 
     public void definirDificuldade(int dificuldade) {
         //Método responsável por definir a dificuldade do jogo. 
+        //O método subtrai o valor da dificuldade do tempo de atualização. 
         tempoAtualizacao -= dificuldade;
     }
 
+    public void colisaoMaca() {
+        Quadrado cabecaCobra = cobra.getCorpo().getLastNode().getQuadrado();
+        //Estrutura de condicional responsável pela colisão da cobra com a maçã
+        if (cabecaCobra.x == maca.x && cabecaCobra.y == maca.y) {
+            cobra.crescer(direcao);
+            gerarMaca();
+            gerarMacaEnvenenada();
+            cabecaCobra = cobra.getCorpo().getLastNode().getQuadrado();
+            placar += 1;
+            this.tempoAtualizacao -= 5;
+            placarField.setText("Placar: " + placar);
+        }
+    }
+
+    public void colisaoMacaEnvenenada() {
+        Quadrado cabecaCobra = cobra.getCorpo().getLastNode().getQuadrado();
+        //Estrutura de condicional responsável pela colisão da cobra com a maçã envenenada 
+        if (cabecaCobra.x == macaEnvenenada.x && cabecaCobra.y == macaEnvenenada.y) {
+
+            if (cobra.getCorpo().getSize() == 1) {
+                cobra.diminuir();
+                placarField.setText("Placar: " + placar);
+                encerrarJogo("Você comeu uma maçã envenenada e morreu!");
+
+            } else {
+                cobra.diminuir();
+                gerarMacaEnvenenada();
+                placar -= 1;
+                placarField.setText("Placar: " + placar);
+            }
+        }
+    }
+
     public void Iniciar() {
-
-        System.out.println("Tempo atualização antes da Thread: " + tempoAtualizacao);
-        System.out.println("Dificuldade: " + TelaInicial.dificuldade);
-
         new Thread(() -> {
-            Quadrado cabecaCobra = cobra.getCorpo().getLastNode().getQuadrado();
+
             jogoAtivo = true;
             while (jogoAtivo) {
                 try {
@@ -327,42 +355,8 @@ public class Tabuleiro extends JFrame {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-                System.out.println("Tempo atualização depois da Thread: " + tempoAtualizacao);
                 cobra.mover(direcao);
-
-                //Estrutura de condicional responsável pela colisão da cobra com a maçã
-                if (cabecaCobra.x == maca.x && cabecaCobra.y == maca.y) {
-                    cobra.crescer(direcao);
-                    gerarMaca();
-                    gerarMacaEnvenenada();
-                    cabecaCobra = cobra.getCorpo().getLastNode().getQuadrado();
-                    placar += 1;
-                    this.tempoAtualizacao -= 5;
-                    placarField.setText("Placar: " + placar);
-
-                }
-
-                //Estrutura de condicional responsável pela colisão da cobra com a maçã envenenada 
-                if (cabecaCobra.x == macaEnvenenada.x && cabecaCobra.y == macaEnvenenada.y) {
-
-                    if (cobra.getCorpo().getSize() == 1) {
-                        cobra.diminuir();
-                        placarField.setText("Placar: " + placar);
-                        encerrarJogo("Você comeu uma maçã envenenada e morreu!");
-
-                    } else {
-                        cobra.diminuir();
-                        gerarMacaEnvenenada();
-                        placar -= 1;
-                        placarField.setText("Placar: " + placar);
-
-                    }
-
-                }
-
                 verificarColisoes();
-
                 painel.repaint();
 
             }
@@ -400,7 +394,7 @@ public class Tabuleiro extends JFrame {
 
                 break;
             case 2: // Sair do Jogo
-                System.exit(0); // Encerra o aplicativo
+                System.exit(0); // Encerra a aplicação
                 break;
             default:
                 break;
